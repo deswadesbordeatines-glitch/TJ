@@ -16,7 +16,7 @@ from openpyxl.styles import Font, PatternFill
 from openpyxl.utils import get_column_letter
 
 
-APP_TITLE = "采购发票识别工具"
+APP_TITLE = "发票识别工具"
 DEFAULT_EXCEL_NAME = "采购发票台账.xlsx"
 DETAIL_HEADERS = [
     "发票类型",
@@ -79,10 +79,19 @@ def normalize_date(value: str) -> str:
         return ""
     text = value.replace("年", "-").replace("月", "-").replace("日", "")
     text = text.replace("/", "-").replace(".", "-")
-    parts = text.split("-")
+    parts = [part.strip() for part in text.split("-")]
     if len(parts) == 3:
         return f"{parts[0]}-{parts[1].zfill(2)}-{parts[2].zfill(2)}"
     return text
+
+
+def remove_cjk_spaces(value: str) -> str:
+    """去掉中文字符之间由 PDF 提取造成的误插空格。"""
+    previous = None
+    while previous != value:
+        previous = value
+        value = re.sub(r"([\u4e00-\u9fff])\s+([\u4e00-\u9fff])", r"\1\2", value)
+    return value
 
 
 def write_log(path: Path, message: str) -> None:
@@ -143,7 +152,7 @@ def extract_pdf_text(pdf_path: Path, debug_log: Path) -> str:
 def remove_party_noise(value: str) -> str:
     for label in ["统一社会信用代码", "纳税人识别号", "地址", "电话", "开户行", "账号"]:
         value = value.split(label)[0]
-    return clean_text(value).strip(":：")
+    return remove_cjk_spaces(clean_text(value).strip(":："))
 
 
 def extract_party_name(text: str, party_label: str) -> str:
@@ -217,6 +226,7 @@ def parse_invoice(pdf_path: Path, debug_log: Path) -> dict:
             first_match(
                 [
                     r"开票日期[:：\s]*([0-9]{4}年[0-9]{1,2}月[0-9]{1,2}日)",
+                    r"开票日期[:：\s]*([0-9]{4}年\s*[0-9]{1,2}月\s*[0-9]{1,2}日)",
                     r"开票日期[:：\s]*([0-9]{4}[-/.][0-9]{1,2}[-/.][0-9]{1,2})",
                 ],
                 text,

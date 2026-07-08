@@ -38,7 +38,7 @@ jobs:
       - name: Build Windows exe with PyInstaller
         shell: pwsh
         run: |
-          $appName = "采购发票识别工具"
+          $appName = "发票识别工具"
           if (Test-Path build) { Remove-Item build -Recurse -Force }
           if (Test-Path dist) { Remove-Item dist -Recurse -Force }
           pyinstaller `
@@ -53,24 +53,24 @@ jobs:
       - name: Smoke test executable exists
         shell: pwsh
         run: |
-          $exe = "dist\采购发票识别工具\采购发票识别工具.exe"
+          $exe = "dist\发票识别工具\发票识别工具.exe"
           if (!(Test-Path $exe)) {
             Write-Error "Expected exe not found: $exe"
             exit 1
           }
-          Get-ChildItem "dist\采购发票识别工具" | Select-Object Name, Length
+          Get-ChildItem "dist\发票识别工具" | Select-Object Name, Length
 
       - name: Create release zip
         shell: pwsh
         run: |
-          $zipName = "采购发票识别工具-Windows离线版.zip"
+          $zipName = "发票识别工具-Windows离线版.zip"
           if (Test-Path $zipName) { Remove-Item $zipName -Force }
-          Compress-Archive -Path "dist\采购发票识别工具" -DestinationPath $zipName -Force
+          Compress-Archive -Path "dist\发票识别工具" -DestinationPath $zipName -Force
           Get-Item $zipName | Select-Object FullName, Length
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: procurement-invoice-tool-windows-offline
-          path: windows_offline_invoice_tool/采购发票识别工具-Windows离线版.zip
+          path: windows_offline_invoice_tool/发票识别工具-Windows离线版.zip
           if-no-files-found: error

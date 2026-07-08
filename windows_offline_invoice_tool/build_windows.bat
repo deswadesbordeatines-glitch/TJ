@@ -1,7 +1,7 @@
 @echo off
 setlocal
 
-set APP_NAME=采购发票识别工具
+set APP_NAME=发票识别工具
 set PROJECT_DIR=%~dp0
 cd /d "%PROJECT_DIR%"
 

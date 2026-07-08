@@ -1,4 +1,4 @@
-采购发票识别工具 Windows 离线版
+发票识别工具 Windows 离线版
 
 一、如何用 GitHub Actions 生成 Windows 离线发布包
 
@@ -11,7 +11,7 @@
 7. 在任务页面底部 Artifacts 区域下载：
    procurement-invoice-tool-windows-offline
 8. 下载后得到 zip 文件：
-   采购发票识别工具-Windows离线版.zip
+   发票识别工具-Windows离线版.zip
 
 这个 zip 是在 GitHub 的 windows-latest 环境中用 PyInstaller 打包生成的 Windows 离线版。
 
@@ -20,10 +20,10 @@
 
 1. 在有网络的电脑上下载 GitHub Actions 生成的 zip。
 2. 解压：
-   采购发票识别工具-Windows离线版.zip
+   发票识别工具-Windows离线版.zip
 3. 解压后会看到文件夹：
-   采购发票识别工具
-4. 请把整个“采购发票识别工具”文件夹复制到 U 盘或移动硬盘。
+   发票识别工具
+4. 请把整个“发票识别工具”文件夹复制到 U 盘或移动硬盘。
 5. 再把整个文件夹复制到目标离线 Windows 电脑。
 
 注意：不要只复制 exe。必须复制整个文件夹，因为依赖库都在同一个文件夹内。
@@ -33,11 +33,11 @@
 
 在离线电脑上打开文件夹：
 
-采购发票识别工具
+发票识别工具
 
 双击：
 
-采购发票识别工具.exe
+发票识别工具.exe
 
 目标电脑不需要安装 Python，不需要网络。
 
@@ -93,4 +93,4 @@ build_windows.bat
 
 本地打包完成后，会生成：
 
-dist\采购发票识别工具\采购发票识别工具.exe
+dist\发票识别工具\发票识别工具.exe
