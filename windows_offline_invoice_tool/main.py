@@ -286,9 +286,8 @@ def ensure_workbook(excel_path: Path):
         sheet = workbook.active
         sheet.title = "发票台账"
         sheet.append(DETAIL_HEADERS)
-    if sheet.max_row < 1 or sheet.cell(1, 1).value != DETAIL_HEADERS[0]:
-        sheet.delete_rows(1, sheet.max_row)
-        sheet.append(DETAIL_HEADERS)
+    if [cell.value for cell in sheet[1]] != DETAIL_HEADERS:
+        raise ValueError("所选工作簿的表头与 PDF 台账不同，请选择新的输出文件。")
     fill = PatternFill("solid", fgColor="D9EAF7")
     for cell in sheet[1]:
         cell.font = Font(bold=True)
@@ -334,6 +333,7 @@ class InvoiceApp:
         ttk.Button(button_frame, text="选择发票文件夹", command=self.choose_folder).pack(side="left", padx=(0, 8))
         ttk.Button(button_frame, text="开始识别", command=self.start).pack(side="left", padx=(0, 8))
         ttk.Button(button_frame, text="打开输出 Excel", command=self.open_excel).pack(side="left")
+        ttk.Button(button_frame, text="照片总金额导出", command=self.photo_export).pack(side="left", padx=8)
 
         output_frame = ttk.Frame(main)
         output_frame.pack(fill="x", pady=(0, 12))
@@ -390,7 +390,29 @@ class InvoiceApp:
         if path:
             self.output_path_var.set(path)
 
+    def photo_export(self):
+        if self.worker and self.worker.is_alive():
+            return
+        paths = filedialog.askopenfilenames(title="选择发票照片", filetypes=[("照片", "*.jpg *.jpeg *.png *.bmp *.tif *.tiff")])
+        if not paths:
+            return
+        destination = filedialog.asksaveasfilename(title="保存照片总金额表（覆盖所选文件）", initialfile="照片发票总金额.xlsx", defaultextension=".xlsx", filetypes=[("Excel", "*.xlsx")])
+        if not destination:
+            return
+        self.status_var.set("正在本机识别照片总金额")
+        def export():
+            try:
+                from photo_total import export_photos
+                review = export_photos(paths, destination, lambda msg: self.queue.put(("log", msg)))
+                self.queue.put(("photo_result", f"已导出 {len(paths)} 张，其中 {review} 张标黄待复核。\n{destination}"))
+            except Exception as exc:
+                self.queue.put(("photo_result", f"照片导出失败：{exc}"))
+        self.worker = threading.Thread(target=export, daemon=True)
+        self.worker.start()
+
     def start(self):
+        if self.worker and self.worker.is_alive():
+            return
         pdf_files = collect_pdf_files(self.selected_paths)
         if not pdf_files:
             messagebox.showerror("没有 PDF", "请先选择 PDF 文件或包含 PDF 的文件夹。")
@@ -437,6 +459,10 @@ class InvoiceApp:
                 event = self.queue.get_nowait()
                 if event[0] == "log":
                     self.log(event[1])
+                elif event[0] == "photo_result":
+                    self.status_var.set(event[1].splitlines()[0])
+                    self.log(event[1])
+                    messagebox.showinfo("照片总金额", event[1])
                 elif event[0] == "progress":
                     _, current, total, success, failed = event
                     self.progress["value"] = current / total * 100

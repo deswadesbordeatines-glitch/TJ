@@ -30,6 +30,8 @@ pyinstaller ^
   --noconfirm ^
   --clean ^
   --onedir ^
+  --collect-all rapidocr_onnxruntime ^
+  --collect-all onnxruntime ^
   --windowed ^
   --name "%APP_NAME%" ^
   main.py
