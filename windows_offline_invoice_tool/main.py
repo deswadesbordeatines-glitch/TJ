@@ -333,7 +333,7 @@ class InvoiceApp:
         ttk.Button(button_frame, text="选择发票文件夹", command=self.choose_folder).pack(side="left", padx=(0, 8))
         ttk.Button(button_frame, text="开始识别", command=self.start).pack(side="left", padx=(0, 8))
         ttk.Button(button_frame, text="打开输出 Excel", command=self.open_excel).pack(side="left")
-        ttk.Button(button_frame, text="照片总金额导出", command=self.photo_export).pack(side="left", padx=8)
+        ttk.Button(button_frame, text="照片台账导出", command=self.photo_export).pack(side="left", padx=8)
 
         output_frame = ttk.Frame(main)
         output_frame.pack(fill="x", pady=(0, 12))
@@ -396,10 +396,10 @@ class InvoiceApp:
         paths = filedialog.askopenfilenames(title="选择发票照片", filetypes=[("照片", "*.jpg *.jpeg *.png *.bmp *.tif *.tiff")])
         if not paths:
             return
-        destination = filedialog.asksaveasfilename(title="保存照片总金额表（覆盖所选文件）", initialfile="照片发票总金额.xlsx", defaultextension=".xlsx", filetypes=[("Excel", "*.xlsx")])
+        destination = filedialog.asksaveasfilename(title="保存照片台账（覆盖所选文件）", initialfile="照片发票情况.xlsx", defaultextension=".xlsx", filetypes=[("Excel", "*.xlsx")])
         if not destination:
             return
-        self.status_var.set("正在本机识别照片总金额")
+        self.status_var.set("正在本机识别发票照片")
         def export():
             try:
                 from photo_total import export_photos
@@ -462,7 +462,7 @@ class InvoiceApp:
                 elif event[0] == "photo_result":
                     self.status_var.set(event[1].splitlines()[0])
                     self.log(event[1])
-                    messagebox.showinfo("照片总金额", event[1])
+                    messagebox.showinfo("照片台账", event[1])
                 elif event[0] == "progress":
                     _, current, total, success, failed = event
                     self.progress["value"] = current / total * 100
