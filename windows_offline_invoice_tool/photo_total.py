@@ -105,14 +105,15 @@ def export_photos(paths, destination, report):
     book = Workbook()
     sheet = book.active
     sheet.title = "发票情况"
-    sheet.merge_cells(start_row=1, start_column=1, end_row=1, end_column=len(HEADERS))
+    output_headers = [HEADERS[0], "来源照片及编号说明", *HEADERS[1:]]
+    sheet.merge_cells(start_row=1, start_column=1, end_row=1, end_column=len(output_headers))
     sheet["A1"] = "发票情况"
     sheet["A1"].alignment = Alignment(horizontal="center")
-    sheet.append(HEADERS)
+    sheet.append(output_headers)
     sheet.freeze_panes = "A3"
     for i, header in enumerate(sheet[2],1):
         header.fill = PatternFill("solid", fgColor="CDE6D0")
-        sheet.column_dimensions[get_column_letter(i)].width = 36 if i==3 else 22
+        sheet.column_dimensions[get_column_letter(i)].width = {2: 78, 4: 36}.get(i, 22)
     sheet["A1"].font = Font(bold=True)
     sheet["A1"].fill = PatternFill("solid", fgColor="CDE6D0")
     sheet.column_dimensions["A"].width = 32
@@ -124,15 +125,19 @@ def export_photos(paths, destination, report):
         except Exception as exc:
             fields = [(None, f"照片读取失败，请复核。{exc}")] * len(HEADERS)
         pending = []
+        fields.insert(1, ((str(path) + "\n" + fields[0][1]).rstrip("\n"), ""))
         for col,(value, reason) in enumerate(fields,1):
             cell = sheet.cell(index,col,value)
             if isinstance(value,str):
                 cell.data_type = "s"
-            if col == 7:
+            if col == 8:
                 cell.number_format = '#,##0.00'
-            cell.comment = Comment(str(path) + "\n" + reason, "发票识别工具")
+            if col == 2:
+                cell.alignment = Alignment(wrap_text=True, vertical="center")
+            elif col > 2:
+                cell.comment = Comment(str(path) + "\n" + reason, "发票识别工具")
             if reason:
-                pending.append(HEADERS[col-1])
+                pending.append(output_headers[col-1])
                 cell.fill = PatternFill("solid", fgColor="FFF2A8")
         review += bool(pending)
         report(f"{Path(path).name}  待复核字段：{'、'.join(pending) or '无'}")
