@@ -9,7 +9,7 @@ from openpyxl.comments import Comment
 from openpyxl.styles import Alignment, Font, PatternFill
 from openpyxl.utils import get_column_letter
 
-HEADERS = ["发票编号", "开票时间", "开票单位", "发票单价", "发票数量", "计量单位", "发票金额", "发票凭证编号"]
+HEADERS = ["发票编号", "开票时间", "开票单位", "发票单价", "发票数量", "计量单位", "发票金额", "发票凭证编号", "合同编号"]
 
 
 def extract_fields(lines):
@@ -66,8 +66,11 @@ def extract_fields(lines):
                 unit = units[0], "按明细位置识别，请核对"
                 if len(quantities)==len(prices):
                     quantity = sum(quantities), "同单位明细数量合计，请核对"
+    contract, note = labeled(r"合同(?:编号|号)[：:]?([^；;，,。]+)")
+    if contract:
+        note = "请对照原图备注区核实完整编号，尤其是印章遮挡处及末尾字符"
     return [number,(issued,issue_note),seller,price,quantity,unit,read_total(lines),
-            labeled(r"发票凭证编号[：:]([A-Za-z0-9-]+)")]
+            labeled(r"发票凭证编号[：:]([A-Za-z0-9-]+)"), (contract, note)]
 
 
 def read_total(lines):
@@ -102,7 +105,7 @@ def export_photos(paths, destination, report):
     book = Workbook()
     sheet = book.active
     sheet.title = "发票情况"
-    sheet.merge_cells("A1:H1")
+    sheet.merge_cells(start_row=1, start_column=1, end_row=1, end_column=len(HEADERS))
     sheet["A1"] = "发票情况"
     sheet["A1"].alignment = Alignment(horizontal="center")
     sheet.append(HEADERS)
